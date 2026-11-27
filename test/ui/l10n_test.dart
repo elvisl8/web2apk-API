@@ -42,6 +42,10 @@ void main() {
 
   testWidgets('Chinese preference renders Chinese UI', (tester) async {
     await pumpPage(tester, language: 'zh');
+    // The preview reuses the app-name label as its title while the field
+    // is empty, so type a name first to leave exactly one '应用名称'.
+    await tester.enterText(find.byKey(const Key('name-field')), '测试应用');
+    await tester.pump();
     expect(find.text('生成'), findsOneWidget);
     expect(find.text('应用名称'), findsOneWidget);
     expect(find.text('网址'), findsOneWidget);
@@ -52,6 +56,10 @@ void main() {
 
   testWidgets('English preference renders English UI', (tester) async {
     await pumpPage(tester, language: 'en');
+    // The preview reuses the app-name label as its title while the field
+    // is empty, so type a name first to leave exactly one 'App name'.
+    await tester.enterText(find.byKey(const Key('name-field')), 'Test App');
+    await tester.pump();
     expect(find.text('Generate'), findsOneWidget);
     expect(find.text('App name'), findsOneWidget);
     expect(find.text('中文'), findsOneWidget);
