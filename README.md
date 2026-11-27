@@ -1,3 +1,5 @@
+[English](README.md) | [中文](README.zh-CN.md)
+
 # web2apk
 
 <img src="docs/icon.png" alt="" width="96" align="right">
