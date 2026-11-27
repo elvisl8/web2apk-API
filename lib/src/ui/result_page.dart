@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../apk_actions.dart';
+import '../l10n.dart';
 import 'snack.dart';
 
 class ResultPage extends StatelessWidget {
@@ -21,15 +22,21 @@ class ResultPage extends StatelessWidget {
     try {
       await body();
     } catch (e) {
-      if (context.mounted) showSnack(context, 'Failed: $e');
+      if (context.mounted) {
+        showSnack(
+          context,
+          L10n.read(context).t('failed', {'error': '$e'}),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final strings = L10n.of(context);
     final kb = (apk.length / 1024).round();
     return Scaffold(
-      appBar: AppBar(title: const Text('Your APK is ready')),
+      appBar: AppBar(title: Text(strings.t('apkReady'))),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
@@ -51,15 +58,12 @@ class ResultPage extends StatelessWidget {
                 if (actions.canInstall) ...[
                   FilledButton.icon(
                     icon: const Icon(Icons.install_mobile),
-                    label: const Text('Install'),
+                    label: Text(strings.t('install')),
                     onPressed: () => _run(context, () async {
                       final r = await actions.install(apk, fileName);
                       if (r == InstallResult.needsPermission &&
                           context.mounted) {
-                        showSnack(
-                          context,
-                          'Allow installs from web2apk in the settings, then tap Install again.',
-                        );
+                        showSnack(context, strings.t('allowInstalls'));
                       }
                     }),
                   ),
@@ -67,17 +71,19 @@ class ResultPage extends StatelessWidget {
                 ],
                 OutlinedButton.icon(
                   icon: const Icon(Icons.save_alt),
-                  label: const Text('Save'),
+                  label: Text(strings.t('save')),
                   onPressed: () => _run(context, () async {
                     final ok = await actions.save(apk, fileName);
-                    if (ok && context.mounted) showSnack(context, 'Saved');
+                    if (ok && context.mounted) {
+                      showSnack(context, strings.t('saved'));
+                    }
                   }),
                 ),
                 if (actions.canShare) ...[
                   const SizedBox(height: 8),
                   OutlinedButton.icon(
                     icon: const Icon(Icons.share),
-                    label: const Text('Share'),
+                    label: Text(strings.t('share')),
                     onPressed: () =>
                         _run(context, () => actions.share(apk, fileName)),
                   ),

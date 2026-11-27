@@ -10,6 +10,7 @@ import '../apk/signing_key.dart';
 import '../apk_actions.dart';
 import '../apk_build.dart';
 import '../icon_loader.dart';
+import '../l10n.dart';
 import '../saved_apps.dart';
 import 'advanced_settings_page.dart';
 import 'app_preview.dart';
@@ -21,11 +22,6 @@ import 'snack.dart';
 
 const _credit = 'Made by devilAPI with <3';
 const _repoUrl = 'https://github.com/devilAPI/web2apk';
-const _webKeyNotice =
-    'Your signing key is stored in this browser. Clearing site data loses it: '
-    'apps you generated can still be installed, but no longer updated in '
-    'place. For a key that lasts, install a web2apk build from the Releases '
-    'page, or back the key up via Signing key.';
 const _defaultColor = Color(0xFF2196F3);
 
 /// An image file picked by the user.
@@ -88,6 +84,10 @@ class _GeneratorPageState extends State<GeneratorPage> {
   /// The icon source: a square PNG from [loadIcon], or null for the default.
   Uint8List? _icon;
   String? _iconName;
+
+  /// Whether [_icon] came from a saved app rather than a picked file, so the
+  /// subtitle can show a localised "saved icon" label instead of a file name.
+  bool _savedIcon = false;
   String? _iconError;
   String? _manualPackage;
   String? _progress;
@@ -107,7 +107,8 @@ class _GeneratorPageState extends State<GeneratorPage> {
     _fullscreen = app.fullscreen;
     _options = app.options;
     _icon = app.icon;
-    _iconName = app.icon == null ? null : 'Saved icon';
+    _iconName = null;
+    _savedIcon = app.icon != null;
     _iconError = null;
     _manualPackage = app.packageId;
   }
@@ -121,6 +122,7 @@ class _GeneratorPageState extends State<GeneratorPage> {
     _options = const AppOptions();
     _icon = null;
     _iconName = null;
+    _savedIcon = false;
     _iconError = null;
     _manualPackage = null;
   }
@@ -180,7 +182,7 @@ class _GeneratorPageState extends State<GeneratorPage> {
       normalizeUrl(_url.text);
       return null;
     } on FormatException catch (e) {
-      return e.message;
+      return L10n.read(context).urlError(e.message);
     }
   }
 
@@ -213,12 +215,21 @@ class _GeneratorPageState extends State<GeneratorPage> {
       setState(() {
         _icon = icon;
         _iconName = picked.name;
+        _savedIcon = false;
         _iconError = null;
       });
     } on FormatException catch (e) {
-      if (mounted) setState(() => _iconError = e.message);
+      if (mounted) {
+        setState(() => _iconError = L10n.read(context).imageError(e.message));
+      }
     } catch (e) {
-      if (mounted) setState(() => _iconError = 'Could not open the image: $e');
+      if (mounted) {
+        setState(
+          () => _iconError = L10n.read(
+            context,
+          ).t('couldNotOpenImage', {'error': '$e'}),
+        );
+      }
     }
   }
 
@@ -246,10 +257,12 @@ class _GeneratorPageState extends State<GeneratorPage> {
       options: _options,
     );
     try {
-      setState(() => _progress = 'Preparing…');
+      setState(() => _progress = L10n.read(context).t('preparing'));
       final key = await widget.loadKey();
       final template = await widget.loadTemplate();
-      if (mounted) setState(() => _progress = 'Building APK…');
+      if (mounted) {
+        setState(() => _progress = L10n.read(context).t('buildingApk'));
+      }
       final apk = await buildSignedApk(
         template: template,
         spec: spec,
@@ -260,7 +273,9 @@ class _GeneratorPageState extends State<GeneratorPage> {
         await widget.savedApps.upsert(SavedApp.fromSpec(spec, icon192: _icon));
       } catch (e) {
         // The APK is built; a failed save must not keep it from the user.
-        _showError('The app could not be saved to My apps: $e');
+        _showError(
+          L10n.read(context).t('couldNotSaveApp', {'error': '$e'}),
+        );
       }
       if (!mounted) return;
       await Navigator.of(context).push(
@@ -273,13 +288,14 @@ class _GeneratorPageState extends State<GeneratorPage> {
         ),
       );
     } catch (e) {
-      _showError('Could not build the APK: $e');
+      _showError(L10n.read(context).t('couldNotBuildApk', {'error': '$e'}));
     } finally {
       if (mounted) setState(() => _progress = null);
     }
   }
 
   void _about() {
+    final strings = L10n.read(context);
     showAboutDialog(
       context: context,
       applicationName: 'web2apk',
@@ -289,7 +305,7 @@ class _GeneratorPageState extends State<GeneratorPage> {
         OutlinedButton.icon(
           key: const Key('open-github'),
           icon: const Icon(Icons.open_in_new),
-          label: const Text('Open on GitHub'),
+          label: Text(strings.t('openOnGitHub')),
           onPressed: _openRepo,
         ),
       ],
@@ -297,43 +313,56 @@ class _GeneratorPageState extends State<GeneratorPage> {
   }
 
   Future<void> _openRepo() async {
+    final strings = L10n.read(context);
     try {
       final ok = await launchUrl(
         Uri.parse(_repoUrl),
         mode: LaunchMode.externalApplication,
       );
-      if (!ok) _showError('Could not open $_repoUrl');
+      if (!ok) _showError(strings.t('couldNotOpenUrl', {'url': _repoUrl}));
     } catch (e) {
-      _showError('Could not open $_repoUrl: $e');
+      _showError(
+        strings.t('couldNotOpenUrlError', {'url': _repoUrl, 'error': '$e'}),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final strings = L10n.of(context);
     final busy = _progress != null;
     final pkg = _packageId;
     return Scaffold(
       appBar: AppBar(
         title: const Text('web2apk'),
         actions: [
+          Tooltip(
+            message: strings.t('switchLanguage'),
+            child: TextButton(
+              onPressed: busy
+                  ? null
+                  : () => L10n.toggleLanguage(context),
+              child: Text(strings.isChinese ? 'EN' : '中文'),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'New app',
+            tooltip: strings.t('newApp'),
             onPressed: busy ? null : () => setState(_reset),
           ),
           IconButton(
             icon: const Icon(Icons.apps),
-            tooltip: 'My apps',
+            tooltip: strings.t('myApps'),
             onPressed: busy ? null : _openMyApps,
           ),
           IconButton(
             icon: const Icon(Icons.key),
-            tooltip: 'Signing key',
+            tooltip: strings.t('signingKey'),
             onPressed: busy ? null : _openKeyPage,
           ),
           IconButton(
             icon: const Icon(Icons.info_outline),
-            tooltip: 'About',
+            tooltip: strings.t('about'),
             onPressed: _about,
           ),
         ],
@@ -355,9 +384,9 @@ class _GeneratorPageState extends State<GeneratorPage> {
               if (widget.showWebKeyNotice) ...[
                 Card(
                   color: Theme.of(context).colorScheme.secondaryContainer,
-                  child: const Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Text(_webKeyNotice),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(strings.t('webKeyNotice')),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -368,7 +397,7 @@ class _GeneratorPageState extends State<GeneratorPage> {
                 maxLength: 50,
                 enabled: !busy,
                 onChanged: (_) => setState(() {}),
-                decoration: const InputDecoration(labelText: 'App name'),
+                decoration: InputDecoration(labelText: strings.t('appName')),
               ),
               TextField(
                 key: const Key('url-field'),
@@ -377,22 +406,28 @@ class _GeneratorPageState extends State<GeneratorPage> {
                 keyboardType: TextInputType.url,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  labelText: 'Website URL',
+                  labelText: strings.t('websiteUrl'),
                   errorText: _urlError,
                 ),
               ),
               const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Color'),
+                title: Text(strings.t('color')),
                 trailing: CircleAvatar(backgroundColor: _color, radius: 14),
                 enabled: !busy,
                 onTap: _pickColor,
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Icon'),
-                subtitle: Text(_iconError ?? _iconName ?? 'Default icon'),
+                title: Text(strings.t('icon')),
+                subtitle: Text(
+                  _iconError ??
+                      _iconName ??
+                      (_savedIcon
+                          ? strings.t('savedIcon')
+                          : strings.t('defaultIcon')),
+                ),
                 trailing: _icon == null
                     ? const Icon(Icons.image_outlined)
                     : ClipRRect(
@@ -409,23 +444,25 @@ class _GeneratorPageState extends State<GeneratorPage> {
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Fullscreen'),
-                subtitle: const Text('Hide the title bar'),
+                title: Text(strings.t('fullscreen')),
+                subtitle: Text(strings.t('hideTitleBar')),
                 value: _fullscreen,
                 onChanged: busy ? null : (v) => setState(() => _fullscreen = v),
               ),
               ListTile(
                 key: const Key('package-tile'),
                 contentPadding: EdgeInsets.zero,
-                title: Text('Package: ${pkg ?? '—'} — tap to change'),
+                title: Text(
+                  strings.t('packageTapToChange', {'package': pkg ?? '—'}),
+                ),
                 enabled: !busy,
                 onTap: _editPackage,
               ),
               ListTile(
                 key: const Key('advanced-settings'),
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Advanced settings'),
-                subtitle: const Text('Orientation, links, dark mode and more'),
+                title: Text(strings.t('advancedSettings')),
+                subtitle: Text(strings.t('advancedSettingsSubtitle')),
                 trailing: const Icon(Icons.chevron_right),
                 enabled: !busy,
                 onTap: _openAdvanced,
@@ -447,11 +484,14 @@ class _GeneratorPageState extends State<GeneratorPage> {
                           Flexible(child: Text(_progress!)),
                         ],
                       )
-                    : const Text('Generate'),
+                    : Text(strings.t('generate')),
               ),
               if (!wide) ...[
                 const SizedBox(height: 24),
-                Text('Preview', style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  strings.t('preview'),
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
                 const SizedBox(height: 12),
                 preview,
               ],

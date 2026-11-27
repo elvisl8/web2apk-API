@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 import '../apk/app_spec.dart';
+import '../l10n.dart';
 
 const _ownPackageId = 'de.devilapi.web2apk';
 
@@ -20,8 +21,9 @@ class _ColorDialogState extends State<ColorDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = L10n.of(context);
     return AlertDialog(
-      title: const Text('Color'),
+      title: Text(strings.t('color')),
       content: SingleChildScrollView(
         child: _custom
             ? ColorPicker(
@@ -41,15 +43,15 @@ class _ColorDialogState extends State<ColorDialog> {
         TextButton(
           key: const Key('custom-color'),
           onPressed: () => setState(() => _custom = !_custom),
-          child: Text(_custom ? 'Presets' : 'Custom'),
+          child: Text(_custom ? strings.t('presets') : strings.t('custom')),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(strings.t('cancel')),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, _picked.withAlpha(0xFF)),
-          child: const Text('OK'),
+          child: Text(strings.t('ok')),
         ),
       ],
     );
@@ -75,11 +77,12 @@ class _PackageDialogState extends State<PackageDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = L10n.of(context);
     final text = _controller.text.trim();
     final own = text == _ownPackageId;
     final ok = isValidPackageId(text) && !own;
     return AlertDialog(
-      title: const Text('Package name'),
+      title: Text(strings.t('packageName')),
       content: TextField(
         key: const Key('package-field'),
         controller: _controller,
@@ -89,18 +92,18 @@ class _PackageDialogState extends State<PackageDialog> {
           errorText: ok
               ? null
               : own
-              ? 'This ID belongs to web2apk itself'
-              : 'Use dot-separated segments like org.example.app',
+              ? strings.t('ownPackageId')
+              : strings.t('packageHint'),
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(strings.t('cancel')),
         ),
         TextButton(
           onPressed: ok ? () => Navigator.pop(context, text) : null,
-          child: const Text('OK'),
+          child: Text(strings.t('ok')),
         ),
       ],
     );

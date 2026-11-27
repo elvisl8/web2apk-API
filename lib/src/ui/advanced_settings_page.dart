@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../apk/app_options.dart';
+import '../l10n.dart';
 
 /// The rarely needed settings of a generated app. Every change goes straight
 /// to [onChanged], so leaving the page needs no confirmation.
@@ -93,13 +94,14 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
   @override
   Widget build(BuildContext context) {
     final o = _options;
+    final strings = L10n.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Advanced settings'),
+        title: Text(strings.t('advancedSettings')),
         actions: [
           IconButton(
             icon: const Icon(Icons.restart_alt),
-            tooltip: 'Reset to defaults',
+            tooltip: strings.t('resetToDefaults'),
             onPressed: _resetAll,
           ),
         ],
@@ -110,73 +112,72 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             children: [
-              _section('Display'),
+              _section(strings.t('display')),
               _choice(
                 'orientation',
-                'Screen orientation',
+                strings.t('screenOrientation'),
                 null,
                 o.orientation,
-                {for (final v in AppOrientation.values) v: v.label},
+                {for (final v in AppOrientation.values) v: strings.orientationLabel(v)},
                 (v) => _set(o.copyWith(orientation: v)),
               ),
               _choice(
                 'dark-mode',
-                'Dark mode for websites',
-                'Android 13 and newer',
+                strings.t('darkModeForWebsites'),
+                strings.t('android13AndNewer'),
                 o.darkMode,
-                {for (final v in AppDarkMode.values) v: v.label},
+                {for (final v in AppDarkMode.values) v: strings.darkModeLabel(v)},
                 (v) => _set(o.copyWith(darkMode: v)),
               ),
               _switch(
                 'hide-system-bars',
-                'Hide status and navigation bars',
-                'Swipe from the screen edge to show them',
+                strings.t('hideSystemBars'),
+                strings.t('hideSystemBarsSubtitle'),
                 o.hideSystemBars,
                 (v) => _set(o.copyWith(hideSystemBars: v)),
               ),
               _switch(
                 'keep-screen-on',
-                'Keep screen on',
-                'For dashboards and kiosks',
+                strings.t('keepScreenOn'),
+                strings.t('keepScreenOnSubtitle'),
                 o.keepScreenOn,
                 (v) => _set(o.copyWith(keepScreenOn: v)),
               ),
               _switch(
                 'loading-color',
-                'Color while loading',
-                'Show the app color instead of white until the page appears',
+                strings.t('loadingColor'),
+                strings.t('loadingColorSubtitle'),
                 o.loadingColor,
                 (v) => _set(o.copyWith(loadingColor: v)),
               ),
-              _section('Browsing'),
+              _section(strings.t('browsing')),
               _switch(
                 'external-links',
-                'Open other sites in the browser',
-                'Keep only links to this website in the app. May break '
-                    'logins that run on another site',
+                strings.t('externalLinks'),
+                strings.t('externalLinksSubtitle'),
                 o.externalLinks,
                 (v) => _set(o.copyWith(externalLinks: v)),
               ),
               _switch(
                 'progress-bar',
-                'Loading bar',
-                'Thin bar at the top while a page loads',
+                strings.t('progressBar'),
+                strings.t('progressBarSubtitle'),
                 o.progressBar,
                 (v) => _set(o.copyWith(progressBar: v)),
               ),
               _switch(
                 'offline-page',
-                'Offline page',
-                'Show a Retry button when a page cannot be loaded',
+                strings.t('offlinePage'),
+                strings.t('offlinePageSubtitle'),
                 o.offlinePage,
                 (v) => _set(o.copyWith(offlinePage: v)),
               ),
               _switch(
                 'reload-button',
-                'Reload button',
+                strings.t('reloadButton'),
                 widget.fullscreen
-                    ? 'Needs the title bar: turn off Fullscreen'
-                    : 'In the title bar',
+                    ? strings.t('reloadNeedsTitleBar')
+                    : strings.t('reloadInTitleBar'),
                 o.reloadButton && !widget.fullscreen,
                 widget.fullscreen
                     ? null
@@ -184,16 +185,16 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
               ),
               _switch(
                 'pinch-zoom',
-                'Pinch to zoom',
-                'Websites can still turn this off',
+                strings.t('pinchZoom'),
+                strings.t('pinchZoomSubtitle'),
                 o.pinchZoom,
                 (v) => _set(o.copyWith(pinchZoom: v)),
               ),
-              _section('Identity'),
+              _section(strings.t('identity')),
               _switch(
                 'desktop-mode',
-                'Desktop mode',
-                'Ask websites for their desktop version',
+                strings.t('desktopMode'),
+                strings.t('desktopModeSubtitle'),
                 o.desktopMode,
                 (v) => _set(o.copyWith(desktopMode: v)),
               ),
@@ -201,9 +202,9 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                 key: const Key('user-agent'),
                 controller: _userAgent,
                 onChanged: (v) => _set(o.copyWith(userAgent: v)),
-                decoration: const InputDecoration(
-                  labelText: 'Custom user agent',
-                  helperText: 'Empty uses the default. Overrides Desktop mode',
+                decoration: InputDecoration(
+                  labelText: strings.t('customUserAgent'),
+                  helperText: strings.t('userAgentHelper'),
                 ),
               ),
               const SizedBox(height: 8),
@@ -212,8 +213,8 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                 controller: _version,
                 maxLength: 50,
                 onChanged: (v) => _set(o.copyWith(versionName: v)),
-                decoration: const InputDecoration(
-                  labelText: 'App version',
+                decoration: InputDecoration(
+                  labelText: strings.t('appVersion'),
                   hintText: '1.0',
                 ),
               ),

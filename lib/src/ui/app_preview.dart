@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../apk/app_options.dart';
+import '../l10n.dart';
 
 const _defaultIconColor = Color(0xFF2196F3);
 
@@ -43,7 +44,8 @@ class AppPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = name.trim().isEmpty ? 'App name' : name.trim();
+    final strings = L10n.of(context);
+    final title = name.trim().isEmpty ? strings.t('appName') : name.trim();
     final onBar = titleColor(statusBarColor(color));
     final host = url == null ? null : Uri.tryParse(url!)?.host;
     return Column(
@@ -144,7 +146,7 @@ class AppPreview extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              host ?? 'Your website',
+                              host ?? strings.t('yourWebsite'),
                               textAlign: TextAlign.center,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,

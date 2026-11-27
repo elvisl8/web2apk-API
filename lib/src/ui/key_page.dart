@@ -6,16 +6,11 @@ import 'package:flutter/services.dart';
 
 import '../apk/signing_key.dart';
 import '../apk_actions.dart';
+import '../l10n.dart';
 import 'snack.dart';
 
 const keyBackupFileName = 'web2apk-signing-key.json';
 const keyBackupFormat = 'web2apk-signing-key-v1';
-
-const _backupWarning =
-    'Anyone with this file can publish updates to your apps. Keep it private.';
-const _restoreWarning =
-    'This replaces your current signing key. Apps signed with the current '
-    'key can then no longer be updated in place, unless you restore it again.';
 
 /// Shows the signing key's fingerprint and lets the user back it up to a file
 /// or restore it from one.
@@ -66,7 +61,7 @@ class _KeyPageState extends State<KeyPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
+              child: Text(L10n.read(ctx).t('cancel')),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
@@ -89,7 +84,13 @@ class _KeyPageState extends State<KeyPage> {
   }
 
   Future<void> _backup(SigningKey key) async {
-    if (!await _confirm(_backupWarning, 'Continue')) return;
+    final strings = L10n.read(context);
+    if (!await _confirm(
+      strings.t('backupWarning'),
+      strings.t('continueAction'),
+    )) {
+      return;
+    }
     await _guard(() async {
       final json = jsonEncode({...key.toJson(), 'format': keyBackupFormat});
       final ok = await widget.actions.saveFile(
@@ -97,8 +98,8 @@ class _KeyPageState extends State<KeyPage> {
         keyBackupFileName,
         mimeType: 'application/json',
       );
-      if (ok) _snack('Key backup saved');
-    }, 'Could not save the backup');
+      if (ok) _snack(strings.t('keyBackupSaved'));
+    }, strings.t('couldNotSaveBackup'));
   }
 
   /// Parses a backup file; null if it is not a valid web2apk key file.
@@ -116,29 +117,36 @@ class _KeyPageState extends State<KeyPage> {
   }
 
   Future<void> _restore() async {
+    final strings = L10n.read(context);
     await _guard(() async {
       final bytes = await _pick();
       if (bytes == null) return;
       final key = _parse(bytes);
       if (key == null) {
-        _snack('Not a valid web2apk key file');
+        _snack(strings.t('notValidKeyFile'));
         return;
       }
-      if (!await _confirm(_restoreWarning, 'Replace key')) return;
+      if (!await _confirm(
+        strings.t('restoreWarning'),
+        strings.t('replaceKey'),
+      )) {
+        return;
+      }
       await widget.replaceKey(key);
       if (!mounted) return;
       final reloaded = widget.loadKey();
       setState(() {
         _key = reloaded;
       });
-      _snack('Signing key restored');
-    }, 'Could not restore the key');
+      _snack(strings.t('signingKeyRestored'));
+    }, strings.t('couldNotRestoreKey'));
   }
 
   @override
   Widget build(BuildContext context) {
+    final strings = L10n.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Signing key')),
+      appBar: AppBar(title: Text(strings.t('signingKey'))),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
@@ -149,7 +157,7 @@ class _KeyPageState extends State<KeyPage> {
                 return Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'The signing key could not be read: ${snap.error}',
+                    strings.t('couldNotReadKey', {'error': '${snap.error}'}),
                   ),
                 );
               }
@@ -158,13 +166,10 @@ class _KeyPageState extends State<KeyPage> {
               return ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  const Text(
-                    'Apps you generate are signed with this key. Back it up '
-                    'to keep updating them in place.',
-                  ),
+                  Text(strings.t('keyIntro')),
                   const SizedBox(height: 16),
                   Text(
-                    'Certificate SHA-256 fingerprint',
+                    strings.t('fingerprint'),
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
                   const SizedBox(height: 4),
@@ -175,13 +180,13 @@ class _KeyPageState extends State<KeyPage> {
                   const SizedBox(height: 24),
                   FilledButton.icon(
                     icon: const Icon(Icons.save_alt),
-                    label: const Text('Back up key'),
+                    label: Text(strings.t('backUpKey')),
                     onPressed: _busy ? null : () => _backup(key),
                   ),
                   const SizedBox(height: 8),
                   OutlinedButton.icon(
                     icon: const Icon(Icons.upload_file),
-                    label: const Text('Restore key'),
+                    label: Text(strings.t('restoreKey')),
                     onPressed: _busy ? null : _restore,
                   ),
                 ],

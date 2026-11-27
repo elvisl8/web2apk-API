@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n.dart';
 import '../saved_apps.dart';
 
 /// Lists remembered apps; tapping one hands it to [onOpen], the trailing
@@ -26,7 +27,11 @@ class _MyAppsPageState extends State<MyAppsPage> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Saved apps could not be read')),
+          SnackBar(
+            content: Text(
+              L10n.read(context).t('savedAppsCouldNotBeRead'),
+            ),
+          ),
         );
       });
       return const [];
@@ -37,18 +42,18 @@ class _MyAppsPageState extends State<MyAppsPage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Delete ${app.name}?'),
-        content: const Text(
-          'It is only removed from this list. The APK you installed is not affected.',
+        title: Text(
+          L10n.of(ctx).t('deleteApp', {'name': app.name}),
         ),
+        content: Text(L10n.of(ctx).t('deleteAppNote')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(L10n.of(ctx).t('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
+            child: Text(L10n.of(ctx).t('delete')),
           ),
         ],
       ),
@@ -64,10 +69,11 @@ class _MyAppsPageState extends State<MyAppsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = L10n.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('My apps')),
+      appBar: AppBar(title: Text(strings.t('myApps'))),
       body: _apps.isEmpty
-          ? const Center(child: Text('No saved apps yet'))
+          ? Center(child: Text(strings.t('noSavedApps')))
           : ListView(
               children: [
                 for (final app in _apps)
@@ -79,7 +85,7 @@ class _MyAppsPageState extends State<MyAppsPage> {
                     onTap: () => widget.onOpen(app),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline),
-                      tooltip: 'Delete',
+                      tooltip: strings.t('delete'),
                       onPressed: () => _delete(app),
                     ),
                   ),

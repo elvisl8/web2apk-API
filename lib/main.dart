@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'src/apk_actions.dart';
 import 'src/key_store.dart';
+import 'src/l10n.dart';
 import 'src/saved_apps.dart';
 import 'src/ui/generator_page.dart';
 
@@ -34,11 +35,14 @@ class Web2ApkApp extends StatelessWidget {
         colorSchemeSeed: const Color(0xFF2196F3),
       ),
       themeMode: ThemeMode.dark,
-      home: GeneratorPage(
-        actions: PlatformApkActions(),
-        savedApps: SavedAppsStore(prefs),
-        loadKey: () => loadOrCreateSigningKey(prefs),
-        replaceKey: (key) => replaceSigningKey(prefs, key),
+      home: L10n(
+        prefs: prefs,
+        child: GeneratorPage(
+          actions: PlatformApkActions(),
+          savedApps: SavedAppsStore(prefs),
+          loadKey: () => loadOrCreateSigningKey(prefs),
+          replaceKey: (key) => replaceSigningKey(prefs, key),
+        ),
       ),
     );
   }
