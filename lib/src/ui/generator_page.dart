@@ -246,6 +246,11 @@ class _GeneratorPageState extends State<GeneratorPage> {
   }
 
   Future<void> _generate() async {
+    // Taken before any await: BuildContext must not be used across async
+    // gaps (use_build_context_synchronously), so all strings below reuse
+    // this snapshot. The language button is disabled while generating, so
+    // the language cannot change mid-build.
+    final strings = L10n.read(context);
     final name = _name.text.trim();
     final spec = AppSpec(
       name: name,
@@ -257,11 +262,11 @@ class _GeneratorPageState extends State<GeneratorPage> {
       options: _options,
     );
     try {
-      setState(() => _progress = L10n.read(context).t('preparing'));
+      setState(() => _progress = strings.t('preparing'));
       final key = await widget.loadKey();
       final template = await widget.loadTemplate();
       if (mounted) {
-        setState(() => _progress = L10n.read(context).t('buildingApk'));
+        setState(() => _progress = strings.t('buildingApk'));
       }
       final apk = await buildSignedApk(
         template: template,
@@ -274,7 +279,7 @@ class _GeneratorPageState extends State<GeneratorPage> {
       } catch (e) {
         // The APK is built; a failed save must not keep it from the user.
         _showError(
-          L10n.read(context).t('couldNotSaveApp', {'error': '$e'}),
+          strings.t('couldNotSaveApp', {'error': '$e'}),
         );
       }
       if (!mounted) return;
@@ -288,7 +293,7 @@ class _GeneratorPageState extends State<GeneratorPage> {
         ),
       );
     } catch (e) {
-      _showError(L10n.read(context).t('couldNotBuildApk', {'error': '$e'}));
+      _showError(strings.t('couldNotBuildApk', {'error': '$e'}));
     } finally {
       if (mounted) setState(() => _progress = null);
     }
