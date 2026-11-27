@@ -8,9 +8,9 @@ Turn a website into an installable Android app. web2apk is a Flutter app that bu
 
 ## Download
 
-**Web:** use it in the browser at https://devilapi.github.io/web2apk/ (newest development build: https://devilapi.github.io/web2apk/dev/).
+**Web:** use it in the browser at https://elvisl8.github.io/web2apk/ (newest development build: https://elvisl8.github.io/web2apk/dev/).
 
-**Apps:** grab a build from the [Releases](https://github.com/devilAPI/web2apk/releases) page (`N` is the build number):
+**Apps:** grab a build from the [Releases](https://github.com/elvisl8/web2apk/releases) page (`N` is the build number):
 
 - `web2apk-dev-N-android.apk` - Android 7.0+
 - `web2apk-dev-N-linux-x64.tar.gz` - Linux (extract and run `web2apk`; the file picker needs `zenity`)
