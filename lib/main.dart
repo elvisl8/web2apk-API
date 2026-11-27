@@ -23,21 +23,24 @@ class Web2ApkApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'web2apk',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF2196F3),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorSchemeSeed: const Color(0xFF2196F3),
-      ),
-      themeMode: ThemeMode.dark,
-      home: L10n(
-        prefs: prefs,
-        child: GeneratorPage(
+    // L10n wraps MaterialApp, not just home: pushed routes and dialogs
+    // are built by the Navigator above home, so wrapping only home would
+    // leave every sub-page on the system language.
+    return L10n(
+      prefs: prefs,
+      child: MaterialApp(
+        title: 'web2apk',
+        theme: ThemeData(
+          useMaterial3: true,
+          colorSchemeSeed: const Color(0xFF2196F3),
+        ),
+        darkTheme: ThemeData(
+          useMaterial3: true,
+          brightness: Brightness.dark,
+          colorSchemeSeed: const Color(0xFF2196F3),
+        ),
+        themeMode: ThemeMode.dark,
+        home: GeneratorPage(
           actions: PlatformApkActions(),
           savedApps: SavedAppsStore(prefs),
           loadKey: () => loadOrCreateSigningKey(prefs),

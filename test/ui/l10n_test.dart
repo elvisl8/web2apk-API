@@ -24,11 +24,13 @@ void main() {
     );
     final prefs = await SharedPreferences.getInstance();
     final store = SavedAppsStore(prefs);
+    // Mirrors main.dart: L10n wraps MaterialApp so pushed routes and
+    // dialogs see the chosen language too.
     await tester.pumpWidget(
-      MaterialApp(
-        home: L10n(
-          prefs: prefs,
-          child: GeneratorPage(
+      L10n(
+        prefs: prefs,
+        child: MaterialApp(
+          home: GeneratorPage(
             actions: FakeActions(),
             savedApps: store,
             loadKey: () async => key,
@@ -78,6 +80,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('生成'), findsOneWidget);
     expect(prefs.getString(languagePrefKey), 'zh');
+  });
+
+  testWidgets('advanced settings follow the chosen language',
+      (tester) async {
+    await pumpPage(tester, language: 'zh');
+    await tester.tap(find.byKey(const Key('advanced-settings')));
+    await tester.pumpAndSettle();
+    expect(find.text('屏幕方向'), findsOneWidget);
+    expect(find.text('显示'), findsOneWidget);
+    expect(find.text('Screen orientation'), findsNothing);
   });
 
   testWidgets('without a provider the UI falls back to the system locale',
