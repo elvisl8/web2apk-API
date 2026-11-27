@@ -8,7 +8,7 @@ Turn a website into an installable Android app. web2apk is a Flutter app that bu
 
 ## Download
 
-**Web:** use it in the browser at https://elvisl8.github.io/web2apk/ (newest development build: https://elvisl8.github.io/web2apk/dev/).
+**Web:** use it in the browser at [https://elvisl8.github.io/web2apk/](https://elvisl8.github.io/web2apk-API/) (newest development build: [https://elvisl8.github.io/web2apk/dev/](https://elvisl8.github.io/web2apk-API/dev/)).
 
 **Apps:** grab a build from the [Releases](https://github.com/elvisl8/web2apk/releases) page (`N` is the build number):
 
